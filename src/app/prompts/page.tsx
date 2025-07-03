@@ -3,8 +3,8 @@ import PromptList from "./components/prompt-list";
 
 export default function Prompts() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Prompts</h1>
+    <div className="max-w-7x my-10 mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 className="text-3xl font-bold mb-6 text-center sm:text-left">Промпты</h1>
       <PromptList />
     </div>
   );

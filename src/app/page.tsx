@@ -10,7 +10,7 @@ export default function HomePage() {
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">Менеджер промптов для продуктивной работы</h1>
         <p className="text-muted-foreground max-w-xl mx-auto">Храните, редактируйте и делитесь своими AI-промптами в одном месте.</p>
         <div className="flex justify-center gap-4">
-          <Link href="/prompts/create">
+          <Link href="/create">
             <Button variant="default">Создать промпт</Button>
           </Link>
           <Link href="/prompts">

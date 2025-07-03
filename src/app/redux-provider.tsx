@@ -13,7 +13,7 @@ interface ReduxProviderProps {
 
 export default function ReduxProvider({ children }: ReduxProviderProps) {
   return (
-    <div>
+    <div className="max-w-[1440px] mx-auto ">
       <Provider store={store}>
         <Toaster />
         <Header />

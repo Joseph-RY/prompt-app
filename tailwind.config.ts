@@ -12,7 +12,6 @@ const config: Config = {
         secondary: "hsl(var(--secondary))",
         muted: "hsl(var(--muted))",
         accent: "hsl(var(--accent))",
-        // можешь добавить свои кастомные
         brand: {
           DEFAULT: "#4F46E5",
           dark: "#4338CA",
