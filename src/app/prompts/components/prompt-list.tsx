@@ -16,52 +16,68 @@ export default function PromptList() {
   }, [dispatch]);
 
   if (prompts.length === 0) {
-    return <p className="text-center text-muted-foreground mt-20 text-lg">Промптов пока нет. Добавьте первый!</p>;
+    return <p className="text-center text-muted-foreground mt-24 text-lg font-semibold select-none">Промптов пока нет. Добавьте первый!</p>;
   }
 
   return (
-    <ul className="min-h-[55vh] grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 min-h-[60vh] px-6">
       {prompts.map(({ id, title, category, favorite, text, tags }) => (
-        <li key={id} className="cursor-pointer">
+        <li key={id}>
           <Dialog>
             <DialogTrigger asChild>
-              <div tabIndex={0} aria-label={`Открыть подробности промпта: ${title}`} className="group bg-background rounded-xl p-5 shadow-sm hover:shadow-md border transition-shadow flex flex-col justify-between h-40">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-foreground truncate max-w-[85%] group-hover:text-primary transition-colors">{title}</h3>
+              <button
+                tabIndex={0}
+                aria-label={`Открыть подробности промпта: ${title}`}
+                className="
+                  group relative bg-white dark:bg-gray-900 rounded-xl border border-gray-300 dark:border-gray-700 p-6 flex flex-col h-48 w-full cursor-pointer
+                  hover:border-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 transition
+                  duration-300 ease-in-out shadow-sm hover:shadow-lg
+                  "
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate max-w-[80%] group-hover:text-indigo-600 transition-colors">{title}</h3>
                   {favorite && (
-                    <svg className="w-6 h-6 text-yellow-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-label="Избранное">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.975a1 1 0 00.95.69h4.18c.969 0 1.371 1.24.588 1.81l-3.385 2.455a1 1 0 00-.364 1.118l1.287 3.974c.3.922-.755 1.688-1.538 1.118L10 13.347l-3.384 2.456c-.783.57-1.838-.196-1.538-1.118l1.286-3.974a1 1 0 00-.364-1.118L3.615 9.402c-.783-.57-.38-1.81.588-1.81h4.18a1 1 0 00.95-.69l1.286-3.975z" />
+                    <svg className="w-6 h-6 text-yellow-400 drop-shadow-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-label="Избранное">
+                      <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273 -4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
                     </svg>
                   )}
                 </div>
 
-                {category && <span className="inline-block bg-muted rounded-full px-3 py-1 text-xs font-medium select-none w-max text-muted-foreground">{category}</span>}
+                {category && <span className="inline-block text-indigo-600 bg-indigo-100 dark:bg-indigo-900 rounded-full px-4 py-1 text-xs font-semibold mb-6 select-none">{category}</span>}
 
-                <div className="mt-auto text-sm text-muted-foreground select-none">Нажмите, чтобы посмотреть детали</div>
-              </div>
+                <p className="mt-auto text-sm text-gray-600 dark:text-gray-400 select-none">Нажмите, чтобы посмотреть детали</p>
+              </button>
             </DialogTrigger>
 
-            <DialogContent className="max-w-lg rounded-xl p-6 bg-background border border-muted shadow-md">
-              <DialogTitle className="text-xl font-semibold mb-4 text-foreground">{title}</DialogTitle>
+            <DialogContent className="max-w-2xl rounded-2xl p-8 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 shadow-2xl">
+              <DialogTitle className="text-3xl font-extrabold mb-6 text-gray-900 dark:text-gray-100 flex items-center gap-3">
+                {title}
+                {favorite && (
+                  <svg className="w-7 h-7 text-yellow-400 drop-shadow-lg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-label="Избранное">
+                    <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273 -4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </DialogTitle>
 
-              {favorite && (
-                <p className="text-yellow-500 font-semibold mb-3 select-none" title="Избранное">
-                  ★ Избранное
-                </p>
+              <DialogDescription className="mb-8 whitespace-pre-wrap text-gray-700 dark:text-gray-300 leading-relaxed font-medium">{text}</DialogDescription>
+
+              {tags?.length > 0 && (
+                <div className="flex flex-wrap gap-4 mb-8">
+                  {tags.map((tag) => (
+                    <span key={tag} className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full px-5 py-2 text-sm font-semibold select-none shadow-lg">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
               )}
 
-              <DialogDescription className="mb-4 whitespace-pre-wrap text-muted-foreground">{text}</DialogDescription>
-
-              <div className="flex flex-wrap gap-2 mb-4">
-                {tags?.map((tag) => (
-                  <span key={tag} className="bg-muted rounded-full px-3 py-1 text-xs font-medium select-none text-muted-foreground">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-
               <DialogClose asChild>
-                <button className="mt-4 w-full rounded-md bg-muted px-4 py-2 text-center text-foreground hover:bg-muted/80 transition">Закрыть</button>
+                <button
+                  className="mt-3 w-full rounded-md bg-indigo-600 text-white py-3 text-lg font-semibold
+                  hover:bg-indigo-700 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400"
+                >
+                  Закрыть
+                </button>
               </DialogClose>
             </DialogContent>
           </Dialog>

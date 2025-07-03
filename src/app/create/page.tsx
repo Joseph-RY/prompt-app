@@ -3,19 +3,26 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { motion } from "framer-motion";
+import { toast } from "react-hot-toast";
+import { auth, db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "react-hot-toast";
-import { auth, db } from "@/lib/firebase";
+import { TagInput } from "./components/tag-input/tag-input";
+import { Backer } from "@/components/custom/backer/backer";
+import { TypingAnimation } from "@/components/magicui/typing-animation";
 
-export default function CreatePrompt() {
+const categories = ["Образование", "Работа", "Развлечения", "Спорт", "Технологии", "Здоровье", "Наука", "Путешествия", "Кулинария", "Искусство", "Музыка", "Финансы", "Маркетинг", "Бизнес", "Мода", "Фотография", "Кино", "Авто", "Дом и семья", "Игры", "Литература", "Политика", "Психология", "Социальные сети", "Юмор", "Экология", "Юриспруденция", "Дизайн", "Общество", "Религия", "Дети и воспитание"];
+
+export default function CreatePromptPage() {
   const router = useRouter();
+
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [category, setCategory] = useState("");
-  const [tags, setTags] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [createdBy, setCreatedBy] = useState("");
   const [favorite, setFavorite] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -38,16 +45,11 @@ export default function CreatePrompt() {
         return;
       }
 
-      const tagsArray = tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter((t) => t.length > 0);
-
       await addDoc(collection(db, "prompts"), {
         title,
         text,
         category,
-        tags: tagsArray,
+        tags,
         favorite,
         createdBy,
         createdAt: serverTimestamp(),
@@ -64,54 +66,67 @@ export default function CreatePrompt() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-6 space-y-6 bg-white dark:bg-gray-800 rounded-md shadow-md">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Создать новый промпт</h1>
+    <div className="min-h-screen bg-background dark:bg-gray-900 flex flex-col">
+      <Backer />
 
-      <div>
-        <label htmlFor="title" className="block mb-1 font-semibold text-gray-700 dark:text-gray-300">
-          Название
-        </label>
-        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Введите название промпта" required className="w-full" />
-      </div>
+      <motion.main initial={{ opacity: 0, y: 40, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: [1, 1.05, 1] }} transition={{ duration: 0.7, ease: "easeOut" }} className="flex-grow overflow-auto px-6 py-4 max-w-3xl mx-auto w-full">
+        <div className="h-9 mb-8">
+          <TypingAnimation delay={900} className="text-3xl font-bold text-foreground dark:text-gray-100 text-center">
+            Создать новый промпт
+          </TypingAnimation>
+        </div>
 
-      <div>
-        <label htmlFor="text" className="block mb-1 font-semibold text-gray-700 dark:text-gray-300">
-          Текст промпта
-        </label>
-        <Textarea id="text" value={text} onChange={(e) => setText(e.target.value)} placeholder="Введите текст промпта" required rows={6} className="w-full" />
-      </div>
+        <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 rounded-md p-8 shadow-lg">
+          <div>
+            <label htmlFor="title" className="block mb-1 font-semibold text-gray-700 dark:text-gray-300">
+              Название
+            </label>
+            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Введите название промпта" required />
+          </div>
 
-      <div>
-        <label htmlFor="category" className="block mb-1 font-semibold text-gray-700 dark:text-gray-300">
-          Категория
-        </label>
-        <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Введите категорию (необязательно)" className="w-full" />
-      </div>
+          <div>
+            <label htmlFor="text" className="block mb-1 font-semibold text-gray-700 dark:text-gray-300">
+              Текст промпта
+            </label>
+            <Textarea className="resize-none" id="text" value={text} onChange={(e) => setText(e.target.value)} placeholder="Введите текст промпта" required rows={6} />
+          </div>
 
-      <div>
-        <label htmlFor="tags" className="block mb-1 font-semibold text-gray-700 dark:text-gray-300">
-          Теги (через запятую)
-        </label>
-        <Input id="tags" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="Например: ai, генерация, текст" className="w-full" />
-      </div>
+          <div>
+            <label htmlFor="category" className="block mb-1 font-semibold text-gray-700 dark:text-gray-300">
+              Категория
+            </label>
+            <select id="category" value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition">
+              <option value="">-- Выберите категорию --</option>
+              {categories.map((e) => (
+                <option key={e} value={e}>
+                  {e}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      <div>
-        <label htmlFor="createdBy" className="block mb-1 font-semibold text-gray-700 dark:text-gray-300">
-          Автор (createdBy)
-        </label>
-        <Input id="createdBy" value={createdBy} onChange={(e) => setCreatedBy(e.target.value)} placeholder="Введите ID или имя автора" required className="w-full" />
-      </div>
+          <TagInput tags={tags} setTags={setTags} />
 
-      <div className="flex items-center space-x-2">
-        <Checkbox id="favorite" checked={favorite} onCheckedChange={(checked) => setFavorite(Boolean(checked))} />
-        <label htmlFor="favorite" className="font-medium text-gray-700 dark:text-gray-300 select-none">
-          Избранное
-        </label>
-      </div>
+          <div>
+            <label htmlFor="createdBy" className="block mb-1 font-semibold text-gray-700 dark:text-gray-300">
+              Автор (createdBy)
+            </label>
+            <Input id="createdBy" value={createdBy} onChange={(e) => setCreatedBy(e.target.value)} placeholder="Введите имя автора" required />
+            <p className="mt-1 text-xs text-muted-foreground">Например: Syntax Studio, Promptium или PromptLab</p>
+          </div>
 
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Создание..." : "Создать промпт"}
-      </Button>
-    </form>
+          <div className="flex items-center space-x-2">
+            <Checkbox id="favorite" checked={favorite} onCheckedChange={(checked) => setFavorite(Boolean(checked))} />
+            <label htmlFor="favorite" className="font-medium text-gray-700 dark:text-gray-300 select-none">
+              Избранное
+            </label>
+          </div>
+
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading ? "Создание..." : "Создать промпт"}
+          </Button>
+        </form>
+      </motion.main>
+    </div>
   );
 }
