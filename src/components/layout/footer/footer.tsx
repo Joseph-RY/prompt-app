@@ -1,5 +1,7 @@
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { FaGithub, FaLinkedin, FaTelegram } from "react-icons/fa";
+
 
 export const Footer = () => {
   const [showTop, setShowTop] = useState(false);
@@ -29,19 +31,19 @@ export const Footer = () => {
             <h4 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Навигация</h4>
             <ul className="space-y-2">
               <li>
-                <a href="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                <Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                   Главная
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/prompts" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                <Link href="/prompts" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                   Промпты
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/favorites" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                <Link href="/favorites" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                   Избранное
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -50,14 +52,14 @@ export const Footer = () => {
             <h4 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Разделы</h4>
             <ul className="space-y-2">
               <li>
-                <a href="/about" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                <Link href="/about" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                   О нас
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/service" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                <Link href="/service" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                   Сервис
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -66,19 +68,19 @@ export const Footer = () => {
             <h4 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Дополнительно</h4>
             <ul className="space-y-2">
               <li>
-                <a href="/login" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                <Link href="/login" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                   Войти
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/prompts/create" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                <Link href="/prompts/create" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                   Добавить промпт
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="mailto:support@promptmanager.com" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                <Link href="mailto:support@promptmanager.com" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                   Связаться с нами
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -88,33 +90,35 @@ export const Footer = () => {
           <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Контакты</h3>
           <p className="text-sm mb-1">
             Email:{" "}
-            <a href="mailto:support@promptmanager.com" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+            <Link href="mailto:support@promptmanager.com" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
               support@promptmanager.com
-            </a>
+            </Link>
           </p>
           <p className="text-sm mb-4">
             Телефон:{" "}
-            <a href="tel:+1234567890" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+            <Link href="tel:+1234567890" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
               +1 234 567 890
-            </a>
+            </Link>
           </p>
           <div className="flex gap-5">
-            <a href="https://github.com/Joseph-RY" aria-label="GitHub" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="https://github.com/Joseph-RY" aria-label="GitHub" className="text-muted-foreground hover:text-foreground transition-colors">
               <FaGithub className="w-6 h-6" />
-            </a>
-            <a href="https://www.linkedin.com/in/yusuf-rahimov-186483372/" aria-label="LinkedIn" className="text-muted-foreground hover:text-blue-600 transition-colors">
+            </Link>
+            <Link href="https://www.linkedin.com/in/yusuf-rahimov-186483372/" aria-label="LinkedIn" className="text-muted-foreground hover:text-blue-600 transition-colors">
               <FaLinkedin className="w-6 h-6" />
-            </a>
-            <a href="https://t.me/joseph_f5" aria-label="Instagram" className="text-muted-foreground hover:text-blue-400 transition-colors">
+            </Link>
+            <Link href="https://t.me/joseph_f5" aria-label="Instagram" className="text-muted-foreground hover:text-blue-400 transition-colors">
               <FaTelegram className="w-6 h-6" />
-            </a>
+            </Link>
           </div>
         </div>
       </div>
 
       {showTop && (
         <button onClick={scrollToTop} type="button" aria-label="Наверх" className="fixed bottom-6 right-6 p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition">
-          ↑
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75 12 3m0 0 3.75 3.75M12 3v18" />
+          </svg>
         </button>
       )}
     </footer>

@@ -1,8 +1,8 @@
 "use client";
 
-import { FaRocket, FaCogs, FaUsers, FaShieldAlt, FaMobileAlt, FaCloud, FaChartLine } from "react-icons/fa";
+import { FaRocket, FaUsers, FaShieldAlt, FaMobileAlt, FaCloud } from "react-icons/fa";
 import { AiOutlineApi } from "react-icons/ai";
-import { MdSupportAgent, MdOutlineIntegrationInstructions } from "react-icons/md";
+import { MdOutlineIntegrationInstructions } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 

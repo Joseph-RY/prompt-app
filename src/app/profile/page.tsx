@@ -19,10 +19,6 @@ export default function Profile() {
 
   const total = prompts.length;
   const favorites = prompts.filter((p) => p.favorite).length;
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  const categories = Array.from(new Set(prompts.map((p) => p.category).filter(Boolean))) as string[];
-  const filteredPrompts = selectedCategory ? prompts.filter((p) => p.category === selectedCategory) : prompts;
 
   const [editingPromptId, setEditingPromptId] = useState<string | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
