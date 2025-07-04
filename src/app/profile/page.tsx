@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { updatePromptFirebase } from "@/store/prompts/promptSlice";
 import PromptList from "./components/prompt-list/prompt-list";
-import PromptEditDialog from "./components/prompt-dialog/promt-dialog";
+import PromptEditDialog from "./components/prompt-dialog/prompt-dialog";
+import { FaUser, FaStar } from "react-icons/fa";
+import { HiOutlineCalendar } from "react-icons/hi";
 
 export default function Profile() {
   const dispatch = useDispatch<AppDispatch>();
@@ -25,7 +27,6 @@ export default function Profile() {
   const [editingPromptId, setEditingPromptId] = useState<string | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
 
-  // Состояние для формы редактирования
   const [form, setForm] = useState({ title: "", category: "", favorite: false });
 
   useEffect(() => {
@@ -71,45 +72,32 @@ export default function Profile() {
   };
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-10 space-y-8">
-      <section className="flex items-center gap-6">
-        <Image src="/default-avatar.png" alt="Аватар пользователя" width={80} height={80} className="rounded-full border border-muted" />
+    <main className="max-w-5xl mx-auto px-4 py-12 space-y-10">
+      <section className="flex items-center gap-6 bg-muted/20 p-6 rounded-2xl border border-muted">
+        <Image src="/default-avatar.png" alt="Аватар пользователя" width={90} height={90} className="rounded-full border border-muted shadow-sm" />
         <div>
-          <h1 className="text-2xl font-bold">Имя пользователя</h1>
-          <p className="text-muted-foreground text-sm">user@email.com</p>
+          <h1 className="text-3xl font-bold text-foreground mb-1 flex items-center gap-2">
+            <FaUser className="text-muted-foreground" />
+            user@gmail.com
+          </h1>
+          <p className="text-muted-foreground text-sm">Имя пользователя</p>
+        </div>
+        <div className="ml-auto">
+          <Link href="/create">
+            <Button size="lg">+ Новый промпт</Button>
+          </Link>
         </div>
       </section>
 
-      <div>
-        <Link href="/create">
-          <Button>Создать промпт</Button>
-        </Link>
-      </div>
-
       <section className="grid sm:grid-cols-3 gap-4 mb-6 text-center">
-        <StatBlock label="Всего промптов" value={total} />
-        <StatBlock label="Избранные" value={favorites} />
-        <StatBlock label="Дата регистрации" value="2025-05-14" />
+        <StatBlock label="Всего промптов" value={total} icon={<FaUser className="text-blue-500" />} />
+        <StatBlock label="Избранные" value={favorites} icon={<FaStar className="text-yellow-400" />} />
+        <StatBlock label="Дата регистрации" value="2025-05-14" icon={<HiOutlineCalendar className="text-green-500" />} />
       </section>
 
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Ваши промпты</h2>
-
-        <PromptList prompts={filteredPrompts} onEdit={openEdit} noPromptsMessage="У вас пока нет промптов." />
-
-        {categories.length > 0 && (
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Фильтр по категории:</label>
-            <select className="border rounded-md px-3 py-2 text-sm bg-background" value={selectedCategory || ""} onChange={(e) => setSelectedCategory(e.target.value || null)}>
-              <option value="">Все категории</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        <PromptList onEdit={openEdit} noPromptsMessage="У вас пока нет промптов." />
       </section>
 
       {editingPromptId && <PromptEditDialog open={!!editingPromptId} loading={loadingEdit} form={form} setForm={setForm} onClose={closeEdit} onSave={saveEdit} />}
@@ -117,9 +105,10 @@ export default function Profile() {
   );
 }
 
-function StatBlock({ label, value }: { label: string; value: string | number }) {
+function StatBlock({ label, value, icon }: { label: string; value: string | number; icon: React.ReactNode }) {
   return (
-    <div className="rounded-xl border bg-muted/30 p-4 text-center">
+    <div className="rounded-xl border bg-muted/30 p-4 text-center shadow-sm">
+      <div className="flex justify-center mb-2 text-xl">{icon}</div>
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="text-2xl font-semibold">{value}</p>
     </div>

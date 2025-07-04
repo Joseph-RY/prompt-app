@@ -1,88 +1,126 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getPrompts } from "@/store/prompts/promptSlice";
 import type { RootState, AppDispatch } from "@/store/store";
-
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 
 export default function PromptList() {
   const dispatch = useDispatch<AppDispatch>();
-  const prompts = useSelector((state: RootState) => state.prompts.items);
+  const { items: prompts, loading } = useSelector((state: RootState) => state.prompts);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(getPrompts());
   }, [dispatch]);
 
-  if (prompts.length === 0) {
-    return <p className="text-center text-muted-foreground mt-24 text-lg font-semibold select-none">Промптов пока нет. Добавьте первый!</p>;
+  const categories = Array.from(new Set(prompts.map((p) => p.category).filter(Boolean)));
+
+  let filteredPrompts = prompts;
+  if (selectedCategory) {
+    filteredPrompts = filteredPrompts.filter((p) => p.category === selectedCategory);
+  }
+  if (searchTerm.trim()) {
+    const lowerSearch = searchTerm.toLowerCase();
+    filteredPrompts = filteredPrompts.filter((p) => p.title.toLowerCase().includes(lowerSearch));
+  }
+
+  if (loading) {
+    return (
+      <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 min-h-[60vh] px-6 py-10">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <li key={index} className="p-6 h-48 rounded-2xl border border-muted bg-muted/30 dark:bg-muted/60 shadow animate-pulse">
+            <div className="h-4 w-3/4 rounded bg-muted-foreground/20 dark:bg-muted-foreground/30 mb-4" />
+            <div className="h-3 w-1/2 rounded bg-muted-foreground/20 dark:bg-muted-foreground/30 mb-2" />
+            <div className="h-3 w-full rounded bg-muted-foreground/10 dark:bg-muted-foreground/20" />
+          </li>
+        ))}
+      </ul>
+    );
   }
 
   return (
-    <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 min-h-[60vh] px-6">
-      {prompts.map(({ id, title, category, favorite, text, tags }) => (
-        <li key={id}>
-          <Dialog>
-            <DialogTrigger asChild>
-              <button
-                tabIndex={0}
-                aria-label={`Открыть подробности промпта: ${title}`}
-                className="
-                  group relative bg-white dark:bg-gray-900 rounded-xl border border-gray-300 dark:border-gray-700 p-6 flex flex-col h-48 w-full cursor-pointer
-                  hover:border-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 transition
-                  duration-300 ease-in-out shadow-sm hover:shadow-lg
-                  "
-              >
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate max-w-[80%] group-hover:text-indigo-600 transition-colors">{title}</h3>
+    <>
+      <div className="mb-8 max-w-md px-6">
+        <label htmlFor="searchInput" className="block mb-2 font-semibold text-foreground">
+          Поиск по заголовку
+        </label>
+        <input id="searchInput" type="text" placeholder="Введите текст для поиска..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full rounded-md border border-muted bg-background px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary mb-6" />
+
+        {categories.length > 0 && (
+          <>
+            <label htmlFor="categoryFilter" className="block mb-2 font-semibold text-foreground">
+              Фильтр по категории
+            </label>
+            <select id="categoryFilter" value={selectedCategory || ""} onChange={(e) => setSelectedCategory(e.target.value || null)} className="w-full rounded-md border border-muted bg-background px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+              <option value="">Все категории</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+      </div>
+
+      <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 min-h-[60vh] px-6 py-10">
+        {filteredPrompts.map(({ id, title, category, favorite, text, tags }) => (
+          <li key={id}>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="group relative p-6 h-48 w-full rounded-2xl border border-muted bg-background shadow-sm hover:shadow-md hover:bg-muted/40 transition-colors text-left cursor-pointer select-none" aria-label={`Открыть подробности промпта: ${title}`}>
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors truncate max-w-[80%]">{title}</h3>
+                    {favorite && (
+                      <span title="Избранное" className="text-yellow-400">
+                        <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2l2.39 6.97h7.34l-5.95 4.33L17.5 21 12 16.77 6.5 21l1.72-7.7L2.27 8.97h7.34L12 2z" />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
+
+                  {category && <span className="inline-block text-primary bg-primary/10 dark:bg-primary/20 rounded-full px-4 py-1 text-xs font-semibold mb-6">{category}</span>}
+
+                  <p className="mt-auto text-sm text-muted-foreground">Нажмите, чтобы посмотреть детали</p>
+                </button>
+              </DialogTrigger>
+
+              <DialogContent className="max-w-2xl rounded-3xl p-10 bg-background border border-muted shadow-xl shadow-indigo-200/30 dark:shadow-indigo-900/50">
+                <DialogTitle className="text-4xl font-extrabold mb-8 flex items-center gap-4 text-foreground dark:text-gray-100">
+                  {title}
                   {favorite && (
-                    <svg className="w-6 h-6 text-yellow-400 drop-shadow-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-label="Избранное">
-                      <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273 -4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
+                    <svg className="w-7 h-7 text-yellow-400 drop-shadow-lg" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" aria-label="Избранное" role="img">
+                      <path d="M12 2l2.39 6.97h7.34l-5.95 4.33L17.5 21 12 16.77 6.5 21l1.72-7.7L2.27 8.97h7.34L12 2z" />
                     </svg>
                   )}
-                </div>
+                </DialogTitle>
 
-                {category && <span className="inline-block text-indigo-600 bg-indigo-100 dark:bg-indigo-900 rounded-full px-4 py-1 text-xs font-semibold mb-6 select-none">{category}</span>}
+                <DialogDescription className="mb-10 whitespace-pre-wrap text-[14px] leading-relaxed font-medium text-muted-foreground dark:text-muted-foreground/80 tracking-wide">{text}</DialogDescription>
 
-                <p className="mt-auto text-sm text-gray-600 dark:text-gray-400 select-none">Нажмите, чтобы посмотреть детали</p>
-              </button>
-            </DialogTrigger>
-
-            <DialogContent className="max-w-2xl rounded-2xl p-8 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 shadow-2xl">
-              <DialogTitle className="text-3xl font-extrabold mb-6 text-gray-900 dark:text-gray-100 flex items-center gap-3">
-                {title}
-                {favorite && (
-                  <svg className="w-7 h-7 text-yellow-400 drop-shadow-lg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-label="Избранное">
-                    <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273 -4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
-                  </svg>
+                {tags?.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-4 mb-10">
+                    <span className="text-base font-semibold text-muted-foreground select-none">Тэги:</span>
+                    {tags.map((tag) => (
+                      <span key={tag} className="bg-muted text-muted-foreground rounded-full px-5 py-2 text-sm font-semibold shadow-md select-none cursor-default transition duration-300 ease-in-out hover:bg-muted/80">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
                 )}
-              </DialogTitle>
 
-              <DialogDescription className="mb-8 whitespace-pre-wrap text-gray-700 dark:text-gray-300 leading-relaxed font-medium">{text}</DialogDescription>
-
-              {tags?.length > 0 && (
-                <div className="flex flex-wrap gap-4 mb-8">
-                  {tags.map((tag) => (
-                    <span key={tag} className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full px-5 py-2 text-sm font-semibold select-none shadow-lg">
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <DialogClose asChild>
-                <button
-                  className="mt-3 w-full rounded-md bg-indigo-600 text-white py-3 text-lg font-semibold
-                  hover:bg-indigo-700 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400"
-                >
-                  Закрыть
-                </button>
-              </DialogClose>
-            </DialogContent>
-          </Dialog>
-        </li>
-      ))}
-    </ul>
+                <DialogClose asChild>
+                  <button className="w-full rounded-2xl bg-primary text-white py-4 text-xl font-extrabold shadow-lg hover:bg-primary/90 active:scale-95 transition transform duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/50">Закрыть</button>
+                </DialogClose>
+              </DialogContent>
+            </Dialog>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }

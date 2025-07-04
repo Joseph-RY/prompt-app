@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export interface Prompt {
@@ -40,29 +40,44 @@ export const updatePromptFirebase = createAsyncThunk<Prompt, { id: string; chang
   return { id, ...changes } as Prompt;
 });
 
+export const deletePromptFirebase = createAsyncThunk<string, string>("prompts/deletePromptFirebase", async (id: string) => {
+  const promptRef = doc(db, "prompts", id);
+  await deleteDoc(promptRef);
+  return id;
+});
+
 interface PromptsState {
   items: Prompt[];
+  loading: boolean;
+  error: string | null;
 }
 
 const initialState: PromptsState = {
   items: [],
+  loading: false,
+  error: null,
 };
 
-const promptsSlice = createSlice({
+const promptSlice = createSlice({
   name: "prompts",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(getPrompts.fulfilled, (state, action: PayloadAction<Prompt[]>) => {
-      state.items = action.payload;
-    });
-    builder.addCase(updatePromptFirebase.fulfilled, (state, action: PayloadAction<Prompt>) => {
-      const index = state.items.findIndex((p) => p.id === action.payload.id);
-      if (index !== -1) {
-        state.items[index] = { ...state.items[index], ...action.payload };
-      }
-    });
+    builder
+      .addCase(getPrompts.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getPrompts.fulfilled, (state, action) => {
+        state.items = action.payload;
+        state.loading = false;
+      })
+      .addCase(getPrompts.rejected, (state) => {
+        state.loading = false;
+      })
+      .addCase(deletePromptFirebase.fulfilled, (state, action) => {
+        state.items = state.items.filter((item) => item.id !== action.payload);
+      });
   },
 });
 
-export default promptsSlice.reducer;
+export default promptSlice.reducer;

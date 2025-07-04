@@ -38,7 +38,7 @@ export const InfiniteMovingCards: React.FC<InfiniteMovingCardsProps> = ({ cards 
         style={{ width: totalWidth }}
       >
         {doubledCards.map((card, i) => (
-          <article key={`${card.id}-${i}`} className="flex-shrink-0 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md w-[280px] select-none" tabIndex={-1}>
+          <article key={`${card.id}-${i}`} className="flex-shrink-0 rounded-xl p-6 shadow-md w-[280px] select-none" tabIndex={-1}>
             <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-gray-100">{card.title}</h3>
             {card.description && <p className="text-sm text-gray-600 dark:text-gray-400">{card.description}</p>}
           </article>
