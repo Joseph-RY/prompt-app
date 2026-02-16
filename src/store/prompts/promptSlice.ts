@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import axios from "axios";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export interface Prompt {
   id: string;
@@ -23,40 +24,32 @@ const initialState: PromptState = {
   error: null,
 };
 
-type FirebasePromptDoc = {
-  name: string;
-  fields: {
-    title?: { stringValue: string };
-    text?: { stringValue: string };
-    category?: { stringValue: string };
-    tags?: { arrayValue: { values: { stringValue: string }[] } };
-    favorite?: { booleanValue: boolean };
-    createdByUid?: { stringValue: string };
-  };
-};
+export const getPrompts = createAsyncThunk<Prompt[], void, { rejectValue: string }>(
+  "prompts/getPrompts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const snap = await getDocs(collection(db, "prompts"));
 
-export const getPrompts = createAsyncThunk<Prompt[]>("prompts/getPrompts", async (_, { rejectWithValue }) => {
-  try {
-    const response = await axios.get(`https://firestore.googleapis.com/v1/projects/prompt-hub-417709/databases/(default)/documents/prompts`);
+      const prompts: Prompt[] = snap.docs.map((d) => {
+        const data = d.data() as Partial<Omit<Prompt, "id">>;
 
-    const prompts: Prompt[] = response.data.documents.map((doc: FirebasePromptDoc) => {
-      const fields = doc.fields || {};
-      return {
-        id: doc.name.split("/").pop() || "",
-        title: fields.title?.stringValue || "",
-        text: fields.text?.stringValue || "",
-        category: fields.category?.stringValue || "",
-        tags: fields.tags?.arrayValue?.values?.map((v) => v.stringValue) || [],
-        favorite: fields.favorite?.booleanValue || false,
-        createdByUid: fields.createdByUid?.stringValue || "",
-      };
-    });
+        return {
+          id: d.id,
+          title: data.title ?? "",
+          text: data.text ?? "",
+          category: data.category ?? "",
+          tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],
+          favorite: Boolean(data.favorite),
+          createdByUid: data.createdByUid ?? "",
+        };
+      });
 
-    return prompts;
-  } catch (error: any) {
-    return rejectWithValue(error.message);
+      return prompts;
+    } catch (e: any) {
+      return rejectWithValue(e?.message ?? "Request failed");
+    }
   }
-});
+);
 
 const promptSlice = createSlice({
   name: "prompts",

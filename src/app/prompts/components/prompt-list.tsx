@@ -8,7 +8,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, D
 
 export default function PromptList() {
   const dispatch = useDispatch<AppDispatch>();
-  const { items: prompts, loading } = useSelector((state: RootState) => state.prompts);
+  const { prompts, loading } = useSelector((state: RootState) => state.prompts);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
