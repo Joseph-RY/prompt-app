@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export interface Prompt {
@@ -46,7 +46,41 @@ export const getPrompts = createAsyncThunk<Prompt[], void, { rejectValue: string
 
       return prompts;
     } catch (e: any) {
-      return rejectWithValue(e?.message ?? "Request failed");
+      return rejectWithValue(e?.message ?? "Failed to load prompts");
+    }
+  }
+);
+
+export const deletePromptFirebase = createAsyncThunk<string, string, { rejectValue: string }>(
+  "prompts/deletePromptFirebase",
+  async (id, { rejectWithValue }) => {
+    try {
+      await deleteDoc(doc(db, "prompts", id));
+      return id;
+    } catch (e: any) {
+      return rejectWithValue(e?.message ?? "Failed to delete prompt");
+    }
+  }
+);
+
+export const updatePromptFirebase = createAsyncThunk<Prompt, Prompt, { rejectValue: string }>(
+  "prompts/updatePromptFirebase",
+  async (prompt, { rejectWithValue }) => {
+    try {
+      const { id, ...data } = prompt;
+
+      await updateDoc(doc(db, "prompts", id), {
+        title: data.title,
+        text: data.text,
+        category: data.category,
+        tags: data.tags,
+        favorite: data.favorite,
+        createdByUid: data.createdByUid,
+      });
+
+      return prompt;
+    } catch (e: any) {
+      return rejectWithValue(e?.message ?? "Failed to update prompt");
     }
   }
 );
@@ -63,9 +97,7 @@ const promptSlice = createSlice({
     },
     updatePrompt: (state, action: PayloadAction<Prompt>) => {
       const index = state.prompts.findIndex((p) => p.id === action.payload.id);
-      if (index !== -1) {
-        state.prompts[index] = action.payload;
-      }
+      if (index !== -1) state.prompts[index] = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -74,13 +106,34 @@ const promptSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(getPrompts.fulfilled, (state, action: PayloadAction<Prompt[]>) => {
+      .addCase(getPrompts.fulfilled, (state, action) => {
         state.prompts = action.payload;
         state.loading = false;
       })
       .addCase(getPrompts.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = action.payload ?? action.error.message ?? "Failed to load prompts";
+      })
+
+      .addCase(deletePromptFirebase.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(deletePromptFirebase.fulfilled, (state, action) => {
+        state.prompts = state.prompts.filter((p) => p.id !== action.payload);
+      })
+      .addCase(deletePromptFirebase.rejected, (state, action) => {
+        state.error = action.payload ?? action.error.message ?? "Failed to delete prompt";
+      })
+
+      .addCase(updatePromptFirebase.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(updatePromptFirebase.fulfilled, (state, action) => {
+        const i = state.prompts.findIndex((p) => p.id === action.payload.id);
+        if (i !== -1) state.prompts[i] = action.payload;
+      })
+      .addCase(updatePromptFirebase.rejected, (state, action) => {
+        state.error = action.payload ?? action.error.message ?? "Failed to update prompt";
       });
   },
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/store/store";
 import Link from "next/link";
@@ -15,31 +15,41 @@ import { HiOutlineCalendar } from "react-icons/hi";
 
 export default function Profile() {
   const dispatch = useDispatch<AppDispatch>();
-  const prompts = useSelector((state: RootState) => state.prompts.items);
+
+  // FIX: items -> prompts
+  const prompts = useSelector((state: RootState) => state.prompts.prompts);
 
   const total = prompts.length;
-  const favorites = prompts.filter((p) => p.favorite).length;
+  const favorites = useMemo(() => prompts.filter((p) => p.favorite).length, [prompts]);
 
   const [editingPromptId, setEditingPromptId] = useState<string | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
 
   const [form, setForm] = useState({ title: "", category: "", favorite: false });
 
+  const currentPrompt = useMemo(
+    () => (editingPromptId ? prompts.find((p) => p.id === editingPromptId) : null),
+    [editingPromptId, prompts]
+  );
+
   useEffect(() => {
-    if (editingPromptId) {
-      const prompt = prompts.find((p) => p.id === editingPromptId);
+    if (currentPrompt) {
       setForm({
-        title: prompt?.title || "",
-        category: prompt?.category || "",
-        favorite: prompt?.favorite || false,
+        title: currentPrompt.title || "",
+        category: currentPrompt.category || "",
+        favorite: !!currentPrompt.favorite,
       });
-    } else setForm({ title: "", category: "", favorite: false });
-  }, [editingPromptId, prompts]);
+    } else {
+      setForm({ title: "", category: "", favorite: false });
+    }
+  }, [currentPrompt]);
 
   const openEdit = (id: string) => setEditingPromptId(id);
   const closeEdit = () => !loadingEdit && setEditingPromptId(null);
 
   const saveEdit = async () => {
+    if (!editingPromptId || !currentPrompt) return;
+
     if (!form.title.trim()) {
       toast.error("Название не может быть пустым");
       return;
@@ -49,19 +59,17 @@ export default function Profile() {
     try {
       await dispatch(
         updatePromptFirebase({
-          id: editingPromptId!,
-          changes: {
-            title: form.title.trim(),
-            category: form.category.trim(),
-            favorite: form.favorite,
-          },
+          ...currentPrompt,
+          title: form.title.trim(),
+          category: form.category.trim(),
+          favorite: form.favorite,
         })
       ).unwrap();
 
       toast.success("Промпт обновлён");
       closeEdit();
-    } catch {
-      toast.error("Ошибка обновления");
+    } catch (e: any) {
+      toast.error(e?.message || "Ошибка обновления");
     } finally {
       setLoadingEdit(false);
     }
@@ -70,7 +78,13 @@ export default function Profile() {
   return (
     <main className="max-w-5xl mx-auto px-4 py-12 space-y-10">
       <section className="flex items-center gap-6 bg-muted/20 p-6 rounded-2xl border border-muted">
-        <Image src="/default-avatar.png" alt="Аватар пользователя" width={90} height={90} className="rounded-full border border-muted shadow-sm" />
+        <Image
+          src="/default-avatar.png"
+          alt="Аватар пользователя"
+          width={90}
+          height={90}
+          className="rounded-full border border-muted shadow-sm"
+        />
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-1 flex items-center gap-2">
             <FaUser className="text-muted-foreground" />
@@ -96,7 +110,16 @@ export default function Profile() {
         <PromptList onEdit={openEdit} noPromptsMessage="У вас пока нет промптов." />
       </section>
 
-      {editingPromptId && <PromptEditDialog open={!!editingPromptId} loading={loadingEdit} form={form} setForm={setForm} onClose={closeEdit} onSave={saveEdit} />}
+      {editingPromptId && (
+        <PromptEditDialog
+          open={!!editingPromptId}
+          loading={loadingEdit}
+          form={form}
+          setForm={setForm}
+          onClose={closeEdit}
+          onSave={saveEdit}
+        />
+      )}
     </main>
   );
 }

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
-import { getPrompts, deletePromptFirebase } from "@/store/prompts/promptSlice";
+import { getPrompts } from "@/store/prompts/promptSlice";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import toast from "react-hot-toast";
@@ -17,7 +17,7 @@ interface Props {
 
 export default function PromptList({ onEdit, noPromptsMessage }: Props) {
   const dispatch = useDispatch<AppDispatch>();
-  const { items: prompts, loading } = useSelector((state: RootState) => state.prompts);
+  const { prompts, loading } = useSelector((state: RootState) => state.prompts);
   const [deletingPromptId, setDeletingPromptId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -27,23 +27,18 @@ export default function PromptList({ onEdit, noPromptsMessage }: Props) {
     }
   }, [dispatch, prompts.length, loading]);
 
-  const categories = Array.from(new Set(prompts.map((p) => p.category).filter(Boolean)));
+  const categories: string[] = Array.from(new Set(prompts.map((p: { category: string }) => p.category).filter(Boolean)));
 
-  const filteredPrompts = selectedCategory ? prompts.filter((p) => p.category === selectedCategory) : prompts;
+  const filteredPrompts = selectedCategory ? prompts.filter((p: { category: string }) => p.category === selectedCategory) : prompts;
 
   const openDeleteDialog = (id: string) => setDeletingPromptId(id);
   const cancelDelete = () => setDeletingPromptId(null);
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (!deletingPromptId) return;
-
-    try {
-      await dispatch(deletePromptFirebase(deletingPromptId)).unwrap();
-      toast.success("✅ Промпт успешно удалён");
-      setDeletingPromptId(null);
-    } catch {
-      toast.error("❌ Не удалось удалить промпт. Попробуйте снова.");
-    }
+    dispatch({ type: 'prompts/removePrompt', payload: deletingPromptId });
+    toast.success("✅ Промпт успешно удалён");
+    setDeletingPromptId(null);
   };
 
   if (loading) {
@@ -86,19 +81,19 @@ export default function PromptList({ onEdit, noPromptsMessage }: Props) {
       )}
 
       <ul className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-        {filteredPrompts.map(({ id, title, category, favorite }) => (
-          <li key={id} className="group relative rounded-2xl border border-muted bg-background p-6 shadow-md hover:shadow-xl transition-shadow flex flex-col justify-between">
+        {filteredPrompts.map((prompt: { id: string; title: string; category: string; favorite: boolean }) => (
+          <li key={prompt.id} className="group relative rounded-2xl border border-muted bg-background p-6 shadow-md hover:shadow-xl transition-shadow flex flex-col justify-between">
             <div>
-              <h3 className="text-lg font-bold text-foreground mb-3 line-clamp-2">{title}</h3>
-              {category && <span className="inline-block bg-primary/10 text-primary dark:bg-primary/20 px-3 py-1 text-xs rounded-full font-semibold mb-2">{category}</span>}
-              {favorite && <FiStar className="absolute top-4 right-4 text-yellow-400 text-xl" title="Избранное" aria-label="Избранное" />}
+              <h3 className="text-lg font-bold text-foreground mb-3 line-clamp-2">{prompt.title}</h3>
+              {prompt.category && <span className="inline-block bg-primary/10 text-primary dark:bg-primary/20 px-3 py-1 text-xs rounded-full font-semibold mb-2">{prompt.category}</span>}
+              {prompt.favorite && <FiStar className="absolute top-4 right-4 text-yellow-400 text-xl" title="Избранное" aria-label="Избранное" />}
             </div>
 
             <div className="flex justify-between gap-3 pt-5 mt-auto border-t border-muted">
-              <Button variant="secondary" size="sm" className="flex items-center justify-center p-2" onClick={() => onEdit(id)} aria-label={`Редактировать промпт ${title}`}>
+              <Button variant="secondary" size="sm" className="flex items-center justify-center p-2" onClick={() => onEdit(prompt.id)} aria-label={`Редактировать промпт ${prompt.title}`}>
                 <FiEdit2 className="w-5 h-5" />
               </Button>
-              <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(id)} aria-label={`Удалить промпт ${title}`}>
+              <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(prompt.id)} aria-label={`Удалить промпт ${prompt.title}`}>
                 <FiTrash2 className="w-5 h-5" />
               </Button>
             </div>
@@ -106,7 +101,13 @@ export default function PromptList({ onEdit, noPromptsMessage }: Props) {
         ))}
       </ul>
 
-      <Dialog open={!!deletingPromptId} onOpenChange={setDeletingPromptId}>
+      <Dialog
+  open={!!deletingPromptId}
+  onOpenChange={(open) => {
+    if (!open) setDeletingPromptId(null);
+  }}
+>
+
         <DialogContent className="max-w-md rounded-xl p-6">
           <DialogTitle className="text-lg font-bold mb-4">Подтверждение удаления</DialogTitle>
           <p className="mb-6">Вы уверены, что хотите удалить этот промпт? Это действие нельзя отменить.</p>
